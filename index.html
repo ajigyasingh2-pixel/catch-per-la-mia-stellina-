@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <title>Cura il raffreddore 🤧❤</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    body {
+      margin: 0;
+      overflow: hidden;
+      font-family: Arial, sans-serif;
+      background: linear-gradient(to bottom, #b3e5fc, #ffffff);
+    }
+
+    canvas {
+      display: block;
+      margin: auto;
+      background: transparent;
+      touch-action: none;
+    }
+
+    #score {
+      position: absolute;
+      top: 15px;
+      left: 50%;
+      transform: translateX(-50%);
+      font-size: 22px;
+      font-weight: bold;
+      color: #004466;
+      text-shadow: 2px 2px 5px rgba(0,0,0,0.3);
+    }
+
+    #message {
+      position: absolute;
+      top: 45%;
+      left: 50%;
+      transform: translate(-50%, -50%) scale(0);
+      background: #fff;
+      border-radius: 25px;
+      padding: 20px 30px;
+      font-size: 20px;
+      color: #ff3366;
+      font-weight: bold;
+      text-align: center;
+      max-width: 80%;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+      transition: transform 0.4s ease;
+    }
+
+    #message.show {
+      transform: translate(-50%, -50%) scale(1);
+    }
+
+    /* Cuoricini di sfondo */
+    .heart {
+      position: absolute;
+      color: rgba(255, 51, 102, 0.4);
+      font-size: 20px;
+      animation: fall linear forwards;
+    }
+
+    @keyframes fall {
+      from { transform: translateY(-20px); opacity: 1; }
+      to { transform: translateY(100vh); opacity: 0; }
+    }
+  </style>
+</head>
+<body>
+  <div id="score">💊 Rimedi raccolti: 0</div>
+  <div id="message"></div>
+  <canvas id="gameCanvas"></canvas>
+
+  <script>
+    const canvas = document.getElementById("gameCanvas");
+    const ctx = canvas.getContext("2d");
+    const scoreDisplay = document.getElementById("score");
+    const message = document.getElementById("message");
+
+    // Ridimensiona canvas automaticamente
+    function resizeCanvas() {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+    }
+    resizeCanvas();
+    window.addEventListener("resize", resizeCanvas);
+
+    // Paziente
+    let patient = { x: canvas.width/2 - 30, y: canvas.height - 80, width: 60, height: 60 };
+    let items = [];
+    let score = 0;
+
+    const remedies = ["🧻", "☕", "🍯", "🍋", "❤"];
+    const messages = [
+      "Un fazzoletto per il tuo nasino 🤧",
+      "Una tisana calda per coccolarti ☕",
+      "Un cucchiaio di miele dolce 🍯",
+      "Un po' di vitamina C 🍋",
+      "Un abbraccio che scalda il cuore ❤"
+    ];
+
+    function createItem() {
+      let x = Math.random() * (canvas.width - 40);
+      let emoji = remedies[Math.floor(Math.random() * remedies.length)];
+      items.push({ x: x, y: 0, size: 35, speed: 2 + Math.random() * 2, emoji: emoji });
+    }
+
+    function drawPatient() {
+      ctx.font = "50px Arial";
+      ctx.fillText("🤧", patient.x, patient.y + 40);
+    }
+
+    function drawItem(item) {
+      ctx.font = item.size + "px Arial";
+      ctx.fillText(item.emoji, item.x, item.y);
+    }
+
+    function update() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      drawPatient();
+
+      for (let i = 0; i < items.length; i++) {
+        let it = items[i];
+        it.y += it.speed;
+        drawItem(it);
+
+        if (
+          it.y > patient.y - 20 &&
+          it.x > patient.x - 20 &&
+          it.x < patient.x + patient.width
+        ) {
+          showMessage(messages[remedies.indexOf(it.emoji)]);
+          items.splice(i, 1);
+          score++;
+          scoreDisplay.textContent = "💊 Rimedi raccolti: " + score;
+
+          if (score === 5) {
+            setTimeout(() => {
+              showMessage("🌸 Rimettiti presto! 💖 Ti mando un abbraccio caldo 🫂");
+            }, 800);
+          }
+        }
+
+        if (it.y > canvas.height) {
+          items.splice(i, 1);
+        }
+      }
+    }
+
+    function showMessage(text) {
+      message.textContent = text;
+      message.classList.add("show");
+      setTimeout(() => {
+        message.classList.remove("show");
+      }, 2000);
+    }
+
+    // Genera oggetti
+    setInterval(() => {
+      if (Math.random() < 0.4) createItem();
+    }, 1000);
+
+    setInterval(update, 20);
+
+    // Controlli tastiera
+    document.addEventListener("keydown", (e) => {
+      if (e.key === "ArrowLeft" && patient.x > 0) {
+        patient.x -= 40;
+      }
+      if (e.key === "ArrowRight" && patient.x < canvas.width - patient.width) {
+        patient.x += 40;
+      }
+    });
+
+    // Controlli touch per telefono
+    document.addEventListener("touchstart", (e) => {
+      const touchX = e.touches[0].clientX;
+      if (touchX < canvas.width / 2) {
+        patient.x -= 40;
+      } else {
+        patient.x += 40;
+      }
+    });
+
+    // Effetto cuoricini che cadono
+    function createHeart() {
+      const heart = document.createElement("div");
+      heart.classList.add("heart");
+      heart.innerHTML = "❤";
+      heart.style.left = Math.random() * 100 + "vw";
+      heart.style.fontSize = (15 + Math.random() * 20) + "px";
+      heart.style.animationDuration = (3 + Math.random() * 4) + "s";
+      document.body.appendChild(heart);
+
+      setTimeout(() => {
+        heart.remove();
+      }, 7000);
+    }
+    setInterval(createHeart, 1200);
+  </script>
+</body>
+</html>
