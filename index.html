@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <title>Cura il raffreddore 🤧❤</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    body {
+      margin: 0;
+      overflow: hidden;
+      font-family: Arial, sans-serif;
+      background: linear-gradient(to bottom, #b3e5fc, #ffffff);
+    }
+
+    canvas {
+      display: block;
+      margin: auto;
+      background: transparent;
+      touch-action: none;
+    }
+
+    #score {
+      position: absolute;
+      top: 15px;
+      left: 50%;
+      transform: translateX(-50%);
+      font-size: 22px;
+      font-weight: bold;
+      color: #004466;
+      text-shadow: 2px 2px 5px rgba(0,0,0,0.3);
+    }
+
+    #message {
+      position: absolute;
+      bottom: 20%;
+      left: 50%;
+      transform: translateX(-50%) scale(0);
+      font-size: 24px;
+      background: #fff;
+      border-radius: 25px;
+      padding: 15px 25px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+      color: #e91e63;
+      font-weight: bold;
+      transition: transform 0.5s ease;
+    }
+
+    #message.show {
+      transform: translateX(-50%) scale(1.2);
+    }
+
+    /* Cuoricini animati */
+    .heart {
+      position: fixed;
+      top: -20px;
+      color: #ff4d6d;
+      font-size: 20px;
+      animation: fall linear infinite;
+      pointer-events: none;
+    }
+
+    @keyframes fall {
+      0% { transform: translateY(0) rotate(0deg); opacity: 1; }
+      100% { transform: translateY(100vh) rotate(360deg); opacity: 0; }
+    }
+  </style>
+</head>
+<body>
+  <div id="score">Punteggio: 0</div>
+  <div id="message"></div>
+  <canvas id="gameCanvas"></canvas>
+
+  <!-- Musichetta soft -->
+  <audio id="bgMusic" autoplay loop>
+    <source src="https://cdn.pixabay.com/download/audio/2022/03/15/audio_f67a39a2cf.mp3?filename=romantic-background-112199.mp3" type="audio/mpeg">
+  </audio>
+
+  <script>
+    const canvas = document.getElementById("gameCanvas");
+    const ctx = canvas.getContext("2d");
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+
+    const scoreDisplay = document.getElementById("score");
+    const messageBox = document.getElementById("message");
+
+    let basket = { x: canvas.width / 2 - 40, y: canvas.height - 100, w: 80, h: 80 };
+    let remedies = [];
+    let score = 0;
+    const remedyTypes = [
+      { emoji: "🍯", text: "Il miele ti addolcisce la giornata 🍯" },
+      { emoji: "🍋", text: "Un po’ di vitamina C per te 🍋" },
+      { emoji: "☕", text: "Tisana calda per scaldarti ☕" },
+      { emoji: "💊", text: "Una pillolina magica 💊" },
+      { emoji: "🧻", text: "Fazzoletto morbido per il nasino 🤧" },
+      { emoji: "🥣", text: "Zuppa calda come un abbraccio 🥣" },
+      { emoji: "🍫", text: "Un po’ di cioccolata per il cuore 🍫" },
+      { emoji: "🍎", text: "Una mela al giorno toglie il raffreddore di torno 🍎" },
+      { emoji: "🍊", text: "Arance piene di energia 🍊" },
+      { emoji: "🫂", text: "Un abbraccio stretto per te 🫂" },
+      { emoji: "💖", text: "Tanto amore che ti fa guarire 💖" },
+      { emoji: "🥛", text: "Latte caldo e dolce 🥛" },
+      { emoji: "🛌", text: "Un riposino ti farà bene 🛌" },
+      { emoji: "🌸", text: "Un pensiero delicato per te 🌸" },
+      { emoji: "🐻", text: "Orsetto che ti coccola 🐻" },
+      { emoji: "🎀", text: "Un pensierino solo per te 🎀" },
+      { emoji: "🌈", text: "Colori che portano serenità 🌈" },
+      { emoji: "🔥", text: "Un fuocherello che ti scalda 🔥" },
+      { emoji: "🥰", text: "Sei speciale anche con il raffreddore 🥰" },
+      { emoji: "💌", text: "Un messaggio pieno di amore 💌" }
+    ];
+
+    function drawBasket() {
+      ctx.fillStyle = "#ff4d6d";
+      ctx.beginPath();
+      ctx.arc(basket.x + basket.w / 2, basket.y + basket.h / 2, 40, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.closePath();
+    }
+
+    function drawRemedies() {
+      ctx.font = "30px Arial";
+      remedies.forEach(r => {
+        ctx.fillText(r.emoji, r.x, r.y);
+      });
+    }
+
+    function updateRemedies() {
+      remedies.forEach(r => r.y += 3);
+      remedies = remedies.filter(r => {
+        if (r.y > canvas.height - 100 &&
+          r.x > basket.x &&
+          r.x < basket.x + basket.w) {
+          score++;
+          scoreDisplay.textContent = "Punteggio: " + score;
+          showMessage(r.text);
+          return false;
+        }
+        return r.y < canvas.height;
+      });
+    }
+
+    function showMessage(text) {
+      messageBox.textContent = text;
+      messageBox.classList.add("show");
+      setTimeout(() => messageBox.classList.remove("show"), 2000);
+    }
+
+    function gameLoop() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      drawBasket();
+      drawRemedies();
+      updateRemedies();
+      requestAnimationFrame(gameLoop);
+    }
+
+    setInterval(() => {
+      const r = remedyTypes[Math.floor(Math.random() * remedyTypes.length)];
+      remedies.push({ ...r, x: Math.random() * (canvas.width - 30), y: 0 });
+    }, 1500);
+
+    // Movimento
+    document.addEventListener("keydown", e => {
+      if (e.key === "ArrowLeft") basket.x -= 40;
+      if (e.key === "ArrowRight") basket.x += 40;
+      basket.x = Math.max(0, Math.min(canvas.width - basket.w, basket.x));
+    });
+
+    // Resize
+    window.addEventListener("resize", () => {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+    });
+
+    // Cuoricini animati sullo sfondo
+    function createHeart() {
+      const heart = document.createElement("div");
+      heart.classList.add("heart");
+      heart.textContent = "❤";
+      heart.style.left = Math.random() * 100 + "vw";
+      heart.style.fontSize = Math.random() * 20 + 15 + "px";
+      heart.style.animationDuration = Math.random() * 3 + 4 + "s";
+      document.body.appendChild(heart);
+      setTimeout(() => heart.remove(), 7000);
+    }
+    setInterval(createHeart, 500);
+
+    gameLoop();
+  </script>
+</body>
+</html>
